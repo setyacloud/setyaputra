@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ujian Online AMKD - Rekap Google Sheets</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 20px;
+            user-select: none;
+        }
+        .container {
+            max-width: 950px;
+            background: #fff;
+            margin: auto;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        h2, h3, h4 {
+            color: #333;
+            margin-top: 0;
+        }
+        .warning-box {
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border: 1px solid #ef9a9a;
+            font-weight: bold;
+            text-align: center;
+            font-size: 14px;
+        }
+        .info-box {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #c8e6c9;
+            text-align: center;
+        }
+        .code-box {
+            background: #272822;
+            color: #f8f8f2;
+            padding: 12px;
+            font-family: monospace;
+            font-size: 13px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            margin: 10px 0;
+            line-height: 1.4;
+        }
+        label {
+            display: block;
+            margin: 8px 0;
+            cursor: pointer;
+        }
+        select, input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        button {
+            background-color: #2e7d32;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+        button:hover {
+            background-color: #1b5e20;
+        }
+        .btn-secondary {
+            background-color: #1565c0;
+        }
+        .btn-secondary:hover {
+            background-color: #0d47a1;
+        }
+        .btn-nav {
+            background-color: #455a64;
+            padding: 8px 16px;
+        }
+        .btn-nav:hover {
+            background-color: #263238;
+        }
+        
+        .top-palette-container {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        .palette-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            margin-bottom: 6px;
+            font-weight: bold;
+            color: #444;
+        }
+        .palette-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        .palette-btn {
+            width: 32px;
+            height: 32px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 12px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .palette-unanswered { background-color: #c62828; }
+        .palette-answered { background-color: #1565c0; }
+        
+        .main-question-area {
+            background: #fff;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 6px;
+        }
+        .question-block { display: none; }
+        .question-block.active { display: block; }
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        #exam-container, #blocked-screen, #result-screen { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- LAYAR UTAMA / LOGIN SISWA -->
+    <div id="start-screen">
+        <h2 style="text-align: center;">UJIAN Antar Muka dan Komunikasi Data</h2>
+        <div class="warning-box">
+            PERHATIAN!<br>
+            - Dilarang membuka aplikasi lain, berpindah tab, atau keluar dari halaman ini.<br>
+            - Waktu pengerjaan adalah <strong>60 Menit (1 Jam)</strong> dan berjalan otomatis.<br>
+            - Jika Anda nekat berpindah aplikasi/tab, ujian akan LANGSUNG TERTUTUP dan dianggap SELESAI (Nilai 0).<br>
+            - <strong>Semua soal wajib dikerjakan (tidak boleh ada nomor merah) agar jawaban bisa dikirim.</strong>
+        </div>
+        
+        <div class="form-group">
+            <label><strong>Nama Lengkap Siswa:</strong></label>
+            <input type="text" id="studentName" placeholder="Masukkan nama lengkap Anda..." required>
+        </div>
+        <div class="form-group">
+            <label><strong>Nomor Absen:</strong></label>
+            <input type="text" id="studentAbsen" placeholder="Contoh: 05, 12, 30..." required>
+        </div>
+        <div class="form-group">
+            <label><strong>Kelas:</strong></label>
+            <input type="text" id="studentClass" placeholder="Contoh: XII TEI..." required>
+        </div>
+        <div class="form-group">
+            <label><strong>Password Ujian:</strong></label>
+            <input type="password" id="studentPassword" placeholder="Masukkan password dari pengawas..." required>
+        </div>
+
+        <button onclick="startExam()" style="width: 100%;">Mulai Ujian Sekarang</button>
+    </div>
+
+    <!-- LAYAR SELESAI -->
+    <div id="result-screen" style="text-align: center;">
+        <h2 style="color: #2e7d32;">Ujian Telah Selesai!</h2>
+        <div class="info-box" style="font-size: 18px;">
+            Terima kasih telah mengerjakan.<br>
+            Nilai Anda: <strong id="finalScoreDisplay" style="font-size: 32px; color: #1b5e20;">0</strong> / 100
+        </div>
+        <p>Data jawaban dan nilai Anda telah terkirim otomatis ke sistem guru.</p>
+        <button class="btn-secondary" onclick="location.reload()">Keluar / Selesai</button>
+    </div>
+
+    <!-- LAYAR KETAHUAN CURANG -->
+    <div id="blocked-screen">
+        <h2 style="color: #c62828; text-align: center;">UJIAN DIBATALKAN!</h2>
+        <div class="warning-box">
+            Anda terdeteksi meninggalkan halaman ujian atau membuka aplikasi lain!<br>
+            Ujian Anda otomatis dihentikan dengan <strong>Nilai: 0</strong>.
+        </div>
+        <button class="btn-secondary" onclick="location.reload()">Kembali</button>
+    </div>
+
+    <!-- KONTEN SOAL UJIAN -->
+    <div id="exam-container">
+        <h3 style="text-align: center; margin-bottom: 5px;">Lembar Soal Ujian HOTS Gabungan</h3>
+        <div class="warning-box" style="font-size: 13px; padding: 8px; margin-bottom: 10px;">
+            Siswa: <span id="displayStudent"></span> | Sisa Waktu: <span id="timerDisplay" style="font-size: 15px; color: #c62828; font-weight: bold;">60:00</span>
+        </div>
+
+        <div class="top-palette-container">
+            <div class="palette-header">
+                <span>Navigasi Nomor Soal (Klik untuk lompat)</span>
+                <span style="font-size: 11px; font-weight: normal; color: #555;">
+                    <span style="display:inline-block; width:9px; height:9px; background:#c62828;"></span> Belum (<span id="countUnanswered">40</span>) &nbsp;
+                    <span style="display:inline-block; width:9px; height:9px; background:#1565c0;"></span> Sudah (<span id="countAnswered">0</span>)
+                </span>
+            </div>
+            <div class="palette-grid" id="paletteGrid"></div>
+        </div>
+
+        <form id="quizForm" onsubmit="submitExam(event)">
+            <div class="main-question-area">
+                
+                <!-- BAGIAN A: PILIHAN GANDA (1 JAWABAN BENAR) [1-10] -->
+                
+                <!-- SOAL 1 -->
+                <div class="question-block active" id="q-block-1">
+                    <h4>Soal Nomor 1 (Pilihan Ganda)</h4>
+                    <p>Seorang siswa ingin mengubah pin LED Merah secara langsung dari dalam fungsi void loop() pada file utama (.ino) menggunakan perintah <code>LED_Merah.pinLED = 10;</code>. Namun, program mengalami error saat proses kompilasi. Mengapa kesalahan tersebut terjadi berdasarkan prinsip OOP?</p>
+                    <label><input type="radio" name="q1" value="A" onchange="updatePaletteState()"> Karena atribut pinLED dideklarasikan di bawah bagian private, sehingga akses langsung dari luar kelas ditolak demi menjaga prinsip Enkapsulasi.</label>
+                    <label><input type="radio" name="q1" value="B" onchange="updatePaletteState()"> Karena variabel pinLED seharusnya dideklarasikan dalam fungsi void setup(), bukan pada kelas LED.</label>
+                    <label><input type="radio" name="q1" value="C" onchange="updatePaletteState()"> Karena perintah tersebut melanggar prinsip Polimorfisme di mana objek tidak boleh mengubah nilai atributnya.</label>
+                    <label><input type="radio" name="q1" value="D" onchange="updatePaletteState()"> Karena perubahan nomor pin hanya dapat dilakukan jika board Arduino diputus dari daya (offline).</label>
+                    <label><input type="radio" name="q1" value="E" onchange="updatePaletteState()"> Karena fungsi digitalWrite() belum dipanggil sebelum baris kode tersebut dijalankan.</label>
+                </div>
+
+                <!-- SOAL 2 -->
+                <div class="question-block" id="q-block-2">
+                    <h4>Soal Nomor 2 (Pilihan Ganda)</h4>
+                    <p>Jika pemrogram lupa mencantumkan include guards (#ifndef LED_H, #define LED_H, #endif) pada file LED.h dalam proyek skenario pemrograman yang kompleks dengan banyak file, masalah utama apa yang paling mungkin timbul pada proses kompilasi?</p>
+                    <label><input type="radio" name="q2" value="A" onchange="updatePaletteState()"> Nilai penundaan (delay) pada fungsi berkedip akan mengalami penyimpangan waktu (delay error).</label>
+                    <label><input type="radio" name="q2" value="B" onchange="updatePaletteState()"> Terjadi kesalahan kompilasi akibat pembacaan/deklarasi ulang kelas LED secara berulang (duplicate declaration).</label>
+                    <label><input type="radio" name="q2" value="C" onchange="updatePaletteState()"> LED pada pin 12 dan 13 secara otomatis berpindah konfigurasi dari OUTPUT menjadi INPUT.</label>
+                    <label><input type="radio" name="q2" value="D" onchange="updatePaletteState()"> Memori Flash pada Arduino UNO akan terisi 100% secara mendadak.</label>
+                    <label><input type="radio" name="q2" value="E" onchange="updatePaletteState()"> Program berhasil dikompilasi, tetapi sinyal HIGH tidak dapat disalurkan ke pin LED.</label>
+                </div>
+
+                <!-- SOAL 3 -->
+                <div class="question-block" id="q-block-3">
+                    <h4>Soal Nomor 3 (Pilihan Ganda)</h4>
+                    <p>Perhatikan potongan eksekusi program loop() berikut: <br><code>LED_Biru.kedip(200);</code><br>Berdasarkan implementasi metode kedip() pada file LED.cpp, berapa total durasi penundaan waktu (delay) yang dihasilkan khusus dari satu kali pemanggilan fungsi LED_Biru.kedip(200) tersebut?</p>
+                    <label><input type="radio" name="q3" value="A" onchange="updatePaletteState()"> 100 milidetik</label>
+                    <label><input type="radio" name="q3" value="B" onchange="updatePaletteState()"> 200 milidetik</label>
+                    <label><input type="radio" name="q3" value="C" onchange="updatePaletteState()"> 400 milidetik</label>
+                    <label><input type="radio" name="q3" value="D" onchange="updatePaletteState()"> 500 milidetik</label>
+                    <label><input type="radio" name="q3" value="E" onchange="updatePaletteState()"> 800 milidetik</label>
+                </div>
+
+                <!-- SOAL 4 -->
+                <div class="question-block" id="q-block-4">
+                    <h4>Soal Nomor 4 (Pilihan Ganda)</h4>
+                    <p>Jika Anda diminta menambahkan sebuah komponen objek baru berupa LED Hijau pada pin 11 tanpa mengubah struktur internal atau logika dasar dari kelas LED yang sudah ada, langkah efisien sesuai kaidah modularitas OOP adalah...</p>
+                    <label><input type="radio" name="q4" value="A" onchange="updatePaletteState()"> Membuka file LED.cpp dan menambahkan fungsi baru void LED_Hijau().</label>
+                    <label><input type="radio" name="q4" value="B" onchange="updatePaletteState()"> Mendeklarasikan objek baru <code>LED LED_Hijau(11);</code> pada file utama (.ino).</label>
+                    <label><input type="radio" name="q4" value="C" onchange="updatePaletteState()"> Mengubah variabel int pinLED pada LED.h menjadi array int pinLED[3].</label>
+                    <label><input type="radio" name="q4" value="D" onchange="updatePaletteState()"> Menghapus kelas LED dan menggantinya dengan pemrograman prosedural konvensional.</label>
+                    <label><input type="radio" name="q4" value="E" onchange="updatePaletteState()"> Membuat file kelas baru bernama LED2.h khusus untuk pin 11.</label>
+                </div>
+
+                <!-- SOAL 5 -->
+                <div class="question-block" id="q-block-5">
+                    <h4>Soal Nomor 5 (Pilihan Ganda)</h4>
+                    <p>Seorang siswa merangkai modul LCD I2C PCF8574 pada Arduino Uno dengan menghubungkan pin A0, A1, dan A2 modul ke GND (menghasilkan alamat 0x20). Namun, pada kode program ia menggunakan sintaks <code>LiquidCrystal_I2C lcd(0x27, 16, 2);</code>. Saat program diunggah, layar LCD hanya menyala tanpa menampilkan teks "Hallo". Mengapa kegagalan komunikasi data tersebut terjadi?</p>
+                    <label><input type="radio" name="q5" value="A" onchange="updatePaletteState()"> Terjadi ketidaksesuaian (mismatch) antara alamat I2C hardware (0x20) yang diset oleh jumper dengan alamat software (0x27) yang dipanggil dalam program.</label>
+                    <label><input type="radio" name="q5" value="B" onchange="updatePaletteState()"> Pin SDA dan SCL pada Arduino Uno seharusnya dihubungkan ke pin Digital 12 dan 13, bukan A4 dan A5.</label>
+                    <label><input type="radio" name="q5" value="C" onchange="updatePaletteState()"> Protokol I2C memerlukan 4 kabel data independen untuk mengirimkan data karakter ke LCD 16x2.</label>
+                    <label><input type="radio" name="q5" value="D" onchange="updatePaletteState()"> Fungsi lcd.backlight() belum dipanggil, sehingga perintah lcd.print() dibatalkan oleh mikroprosesor.</label>
+                    <label><input type="radio" name="q5" value="E" onchange="updatePaletteState()"> Modul I2C secara otomatis mengunci baris komunikasi jika menggunakan Arduino Uno beresolusi 10-bit.</label>
+                </div>
+
+                <!-- SOAL 6 -->
+                <div class="question-block" id="q-block-6">
+                    <h4>Soal Nomor 6 (Pilihan Ganda)</h4>
+                    <p>Sebuah sistem pembacaan potensiometer dipindahkan dari Arduino Uno (ADC 10-bit) ke ESP32 Dev Kit (ADC 12-bit). Jika potensiometer diputar persis pada posisi tengah (50% dari tegangan referensi), berapakah nilai digital mentah (raw ADC) yang dibaca oleh fungsi analogRead() pada masing-masing board tersebut?</p>
+                    <label><input type="radio" name="q6" value="A" onchange="updatePaletteState()"> ESP32 membaca sekitar 2047, sedangkan Arduino Uno membaca sekitar 511.</label>
+                    <label><input type="radio" name="q6" value="B" onchange="updatePaletteState()"> ESP32 membaca sekitar 4095, sedangkan Arduino Uno membaca sekitar 1023.</label>
+                    <label><input type="radio" name="q6" value="C" onchange="updatePaletteState()"> ESP32 membaca sekitar 511, sedangkan Arduino Uno membaca sekitar 2047.</label>
+                    <label><input type="radio" name="q6" value="D" onchange="updatePaletteState()"> Kedua board membaca nilai yang sama yaitu 500 karena menggunakan tegangan referensi yang sama.</label>
+                    <label><input type="radio" name="q6" value="E" onchange="updatePaletteState()"> ESP32 membaca sekitar 1023, sedangkan Arduino Uno membaca sekitar 4095.</label>
+                </div>
+
+                <!-- SOAL 7 -->
+                <div class="question-block" id="q-block-7">
+                    <h4>Soal Nomor 7 (Pilihan Ganda)</h4>
+                    <p>Sebuah perancangan sistem tertanam (embedded system) mensyaratkan penambahan 6 modul sensor berbeda pada satu papan mikrokontroler dengan keterbatasan jumlah pin I/O. Mengapa protokol I2C lebih efisien digunakan dibandingkan protokol SPI dalam skenario ini?</p>
+                    <label><input type="radio" name="q7" value="A" onchange="updatePaletteState()"> Karena I2C menggunakan bus bersama 2 jalur (SDA dan SCL) untuk banyak slave berbasis pengalamatan unik, sedangkan SPI membutuhkan tambahan 1 jalur Slave Select (SS) fisik khusus untuk setiap slave tambahan.</label>
+                    <label><input type="radio" name="q7" value="B" onchange="updatePaletteState()"> Karena I2C beroperasi secara asinkron tanpa membutuhkan sinyal clock, sehingga menghemat pin mikrokontroler.</label>
+                    <label><input type="radio" name="q7" value="C" onchange="updatePaletteState()"> Karena SPI tidak mendukung konfigurasi banyak slave pada satu board mikrokontroler.</label>
+                    <label><input type="radio" name="q7" value="D" onchange="updatePaletteState()"> Karena I2C menghubungkan pin Tx dan Rx secara menyilang pada setiap sensor yang terpasang.</label>
+                    <label><input type="radio" name="q7" value="E" onchange="updatePaletteState()"> Karena SPI memerlukan resistor pull-up bernilai tinggi pada setiap jalur data yang dapat membebani daya mikrokontroler.</label>
+                </div>
+
+                <!-- SOAL 8 -->
+                <div class="question-block" id="q-block-8">
+                    <h4>Soal Nomor 8 (Pilihan Ganda)</h4>
+                    <p>Dua buah mikrokontroler dihubungkan untuk saling berkomunikasi data serial melalui antarmuka UART. Pengembang menyambungkan pin Tx mikrokontroler A ke pin Tx mikrokontroler B, serta pin Rx mikrokontroler A ke pin Rx mikrokontroler B. Hasilnya, tidak ada data yang dapat diterima oleh kedua perangkat. Analisis yang tepat mengenai kesalahan dan solusinya adalah...</p>
+                    <label><input type="radio" name="q8" value="A" onchange="updatePaletteState()"> Pemasangan jalur UART harus bersilangan (crossover), yaitu TxA ke RxB dan RxA ke TxB, agar data yang dikirim dari satu unit diterima oleh unit lainnya.</label>
+                    <label><input type="radio" name="q8" value="B" onchange="updatePaletteState()"> Jalur UART membutuhkan resistor pull-up ke VCC pada pin Tx dan Rx agar sinyal tidak mengalami kebocoran data.</label>
+                    <label><input type="radio" name="q8" value="C" onchange="updatePaletteState()"> Komunikasi UART hanya dapat bekerja jika pin SDA dan SCL dihubungkan secara paralel di antara kedua mikrokontroler.</label>
+                    <label><input type="radio" name="q8" value="D" onchange="updatePaletteState()"> UART mensyaratkan adanya satu jalur Slave Select (SS) tambahan untuk mengaktifkan pin Rx pada penerima.</label>
+                    <label><input type="radio" name="q8" value="E" onchange="updatePaletteState()"> Kedua mikrokontroler harus menggunakan pin Analog A4 dan A5 agar pengiriman data serial paralel dapat berjalan.</label>
+                </div>
+
+                <!-- SOAL 9 -->
+                <div class="question-block" id="q-block-9">
+                    <h4>Soal Nomor 9 (Pilihan Ganda)</h4>
+                    <p>Pada program praktikum Jobsheet 3, sensor DHT22 membaca data suhu (t) dan dievaluasi menggunakan struktur kondisi berikut:<br><code>if (t >= 30 && t <= 32) { digitalWrite(12, HIGH); } else { digitalWrite(12, LOW); }</code><br>Jika pembacaan suhu gudang berturut-turut tercatat 28.5⁰ C, 30.5⁰ C, dan 33.0⁰ C, bagaimanakah status output LED pada GPIO 12 secara berurutan?</p>
+                    <label><input type="radio" name="q9" value="A" onchange="updatePaletteState()"> MATI – NYALA – MATI</label>
+                    <label><input type="radio" name="q9" value="B" onchange="updatePaletteState()"> NYALA – NYALA – MATI</label>
+                    <label><input type="radio" name="q9" value="C" onchange="updatePaletteState()"> MATI – MATI – NYALA</label>
+                    <label><input type="radio" name="q9" value="D" onchange="updatePaletteState()"> NYALA – MATI – NYALA</label>
+                    <label><input type="radio" name="q9" value="E" onchange="updatePaletteState()"> MATI – NYALA – NYALA</label>
+                </div>
+
+                <!-- SOAL 10 -->
+                <div class="question-block" id="q-block-10">
+                    <h4>Soal Nomor 10 (Pilihan Ganda)</h4>
+                    <p>Sebuah stasiun pemantauan lingkungan diletakkan di lokasi hutan terpencil tanpa akses jaringan internet maupun sinyal seluler. Sistem tersebut dituntut untuk merakam data suhu dan kelembaban udara setiap 10 menit selama 6 bulan secara mandiri tanpa kehilangan data saat daya terputus. Metode data logging manakah yang paling efektif dan sesuai dengan kebutuhan sistem tersebut?</p>
+                    <label><input type="radio" name="q10" value="A" onchange="updatePaletteState()"> Logging ke Serial Monitor</label>
+                    <label><input type="radio" name="q10" value="B" onchange="updatePaletteState()"> Logging ke Cloud Platform (IoT)</label>
+                    <label><input type="radio" name="q10" value="C" onchange="updatePaletteState()"> Logging ke SD Card</label>
+                    <label><input type="radio" name="q10" value="D" onchange="updatePaletteState()"> Logging ke Memori Internal EEPROM</label>
+                    <label><input type="radio" name="q10" value="E" onchange="updatePaletteState()"> Logging ke RAM Mikrokontroler</label>
+                </div>
+
+                <!-- BAGIAN B: PILIHAN GANDA KOMPLEKS (2 JAWABAN BENAR) [11-20] -->
+                
+                <!-- SOAL 11 -->
+                <div class="question-block" id="q-block-11">
+                    <h4>Soal Nomor 11 (Pilih 2 Jawaban)</h4>
+                    <p>Manakah dari pernyataan berikut yang secara tepat menggambarkan penerapan prinsip Abstraksi dan Enkapsulasi pada proyek praktikum kontrol LED tersebut?</p>
+                    <label><input type="checkbox" name="q11" value="A" onchange="updatePaletteState()"> Abstraksi dan Enkapsulasi mensyaratkan penggunaan dua papan Arduino UNO yang saling terhubung secara serial</label>
+                    <label><input type="checkbox" name="q11" value="B" onchange="updatePaletteState()"> Enkapsulasi diwujudkan dengan menyembunyikan variabel pinLED di bawah penentu akses private pada file LED.h.</label>
+                    <label><input type="checkbox" name="q11" value="C" onchange="updatePaletteState()"> Abstraksi diwujudkan dengan menempatkan semua pustaka Arduino di dalam fungsi loop() utama.</label>
+                    <label><input type="checkbox" name="q11" value="D" onchange="updatePaletteState()"> Enkapsulasi diwujudkan dengan menghubungkan Katoda LED secara langsung ke Ground.</label>
+                    <label><input type="checkbox" name="q11" value="E" onchange="updatePaletteState()"> Abstraksi ditunjukkan ketika pengguna cukup memanggil LED_Merah.nyalakan() tanpa perlu mengurus fungsi tingkat rendah digitalWrite(pinLED, HIGH).</label>
+                </div>
+
+                <!-- SOAL 12 -->
+                <div class="question-block" id="q-block-12">
+                    <h4>Soal Nomor 12 (Pilih 2 Jawaban)</h4>
+                    <p>Mengapa pustaka #include &lt;Arduino.h&gt; wajib dicantumkan pada bagian atas file LED.h?</p>
+                    <label><input type="checkbox" name="q12" value="A" onchange="updatePaletteState()"> Agar struktur C++ pada kelas dapat berkomunikasi dengan pustaka bawaan Arduino.</label>
+                    <label><input type="checkbox" name="q12" value="B" onchange="updatePaletteState()"> Untuk secara otomatis mengunduh driver Arduino UNO dari internet.</label>
+                    <label><input type="checkbox" name="q12" value="C" onchange="updatePaletteState()"> Agar kecepatan komunikasi serial Serial.begin() secara otomatis tersetting ke 9600 baud.</label>
+                    <label><input type="checkbox" name="q12" value="D" onchange="updatePaletteState()"> Agar variabel dan fungsi standar Arduino (seperti pinMode, digitalWrite, HIGH, LOW) dapat dikenali di luar file sketch utama (.ino).</label>
+                    <label><input type="checkbox" name="q12" value="E" onchange="updatePaletteState()"> Untuk menggantikan peran file Constructor LED::LED(int pin).</label>
+                </div>
+
+                <!-- SOAL 13 -->
+                <div class="question-block" id="q-block-13">
+                    <h4>Soal Nomor 13 (Pilih 2 Jawaban)</h4>
+                    <p>Jika Anda ingin mengembangkan fungsi pada kelas LED agar LED dapat berkedip sebanyak N kali berturut-turut, modifikasi manakah yang tepat sesuai prinsip OOP?</p>
+                    <label><input type="checkbox" name="q13" value="A" onchange="updatePaletteState()"> Mengubah penentu akses atribut pinLED dari private menjadi void.</label>
+                    <label><input type="checkbox" name="q13" value="B" onchange="updatePaletteState()"> Menghapus file LED.cpp dan menggabungkan semua kodenya ke dalam fungsi void setup().</label>
+                    <label><input type="checkbox" name="q13" value="C" onchange="updatePaletteState()"> Menambahkan deklarasi metode baru/overloading void kedip(int delayWaktu, int jumlahKedip); pada bagian public di file LED.h.</label>
+                    <label><input type="checkbox" name="q13" value="D" onchange="updatePaletteState()"> Menambahkan implementasi perulangan (looping) dalam file LED.cpp yang memanggil metode nyalakan() dan matikan() sebanyak N kali.</label>
+                    <label><input type="checkbox" name="q13" value="E" onchange="updatePaletteState()"> Menghapus baris #include "LED.h" pada file program utama (.ino).</label>
+                </div>
+
+                <!-- SOAL 14 -->
+                <div class="question-block" id="q-block-14">
+                    <h4>Soal Nomor 14 (Pilih 2 Jawaban)</h4>
+                    <p>Berdasarkan konsep dasar antarmuka komunikasi I2C (Inter-Integrated Circuit) yang dijelaskan pada modul, manakah DUA pernyataan berikut yang benar mengenai karakteristik hardware dan arsitekturnya?</p>
+                    <label><input type="checkbox" name="q14" value="A" onchange="updatePaletteState()"> Hanya membutuhkan dua saluran utama untuk bertukar data, yaitu SDA (Serial Data) dan SCL (Serial Clock) serta Ground sebagai referensi.</label>
+                    <label><input type="checkbox" name="q14" value="B" onchange="updatePaletteState()"> Memerlukan jalur fisik khusus Slave Select (SS) terpisah untuk setiap perangkat slave yang terhubung pada jalur bus.</label>
+                    <label><input type="checkbox" name="q14" value="C" onchange="updatePaletteState()"> Beroperasi secara asinkron tanpa menggunakan sinyal pewaktuan (clock) bersama antara Master dan Slave.</label>
+                    <label><input type="checkbox" name="q14" value="D" onchange="updatePaletteState()"> Mengharuskan pemisahan kabel pengirim (Tx) dan penerima (Rx) pada setiap perangkat yang terhubung.</label>
+                    <label><input type="checkbox" name="q14" value="E" onchange="updatePaletteState()"> Menggunakan resistor pull-up pada saluran bus data dan clock untuk menjaga kondisi logika tetap HIGH saat bus dalam keadaan mengambang (idle).</label>
+                </div>
+
+                <!-- SOAL 15 -->
+                <div class="question-block" id="q-block-15">
+                    <h4>Soal Nomor 15 (Pilih 2 Jawaban)</h4>
+                    <p>Seorang siswa diminta menyelesaikan Soal Tantangan 2 pada ESP32 (ADC 12-bit): "Jika nilai potensiometer kurang dari 50%, LED Merah dan LED Hijau NYALA. Jika nilai lebih dari atau sama dengan 50%, hanya LED Hijau yang NYALA." Manakah DUA langkah/pernyataan program yang tepat untuk mengimplementasikan logika tersebut?</p>
+                    <label><input type="checkbox" name="q15" value="A" onchange="updatePaletteState()"> Menggunakan ambang batas if (pot < 512) karena ADC pada ESP32 secara bawaan memiliki resolusi 10-bit dalam IDE Arduino.</label>
+                    <label><input type="checkbox" name="q15" value="B" onchange="updatePaletteState()"> Menggunakan ambang batas kondisi if (pot < 2048) untuk mendeteksi posisi potensiometer di bawah 50% dari rentang maksimum ADC 12-bit (0-4095).</label>
+                    <label><input type="checkbox" name="q15" value="C" onchange="updatePaletteState()"> Mengaktifkan kedua LED dengan digitalWrite(pinMerah, HIGH); dan digitalWrite(pinHijau, HIGH); di dalam blok kondisi pot < 2048.</label>
+                    <label><input type="checkbox" name="q15" value="D" onchange="updatePaletteState()"> Menuliskan perintah lcd.print(pot); untuk secara langsung mengalirkan arus listrik menyalakan fisik LED Merah.</label>
+                    <label><input type="checkbox" name="q15" value="E" onchange="updatePaletteState()"> Menghubungkan kaki potensiometer langsung ke pin SCL (I2C) agar persentase otomatis terkonversi menjadi sinyal saklar LED.</label>
+                </div>
+
+                <!-- SOAL 16 -->
+                <div class="question-block" id="q-block-16">
+                    <h4>Soal Nomor 16 (Pilih 2 Jawaban)</h4>
+                    <p>Apabila membandingkan karakteristik antarmuka SPI dan UART berdasarkan dasar teori pada Jobsheet 2, manakah DUA pernyataan analisis yang paling tepat?</p>
+                    <label><input type="checkbox" name="q16" value="A" onchange="updatePaletteState()"> UART membutuhkan jalur Chip Select (CS) khusus untuk memilih mikrokontroler mana yang berhak menjadi master.</label>
+                    <label><input type="checkbox" name="q16" value="B" onchange="updatePaletteState()"> SPI merupakan protokol sinkron yang menggunakan saluran sinyal clock (SCK) dan mendukung mode full-duplex menggunakan arsitektur Master-Slave.</label>
+                    <label><input type="checkbox" name="q16" value="C" onchange="updatePaletteState()"> SPI memerlukan lebih banyak kabel bus utama dibandingkan I2C ketika menghubungkan banyak perangkat slave pada satu master.</label>
+                    <label><input type="checkbox" name="q16" value="D" onchange="updatePaletteState()"> SPI beroperasi secara asinkron sedangkan UART beroperasi secara sinkron menggunakan bus SDA dan SCL.</label>
+                    <label><input type="checkbox" name="q16" value="E" onchange="updatePaletteState()"> UART merupakan protokol asinkron di mana format data dan kecepatan transmisi (baud rate) harus disepakati terlebih dahulu oleh kedua pihak karena tidak ada jalur clock bersama.</label>
+                </div>
+
+                <!-- SOAL 17 -->
+                <div class="question-block" id="q-block-17">
+                    <h4>Soal Nomor 17 (Pilih 2 Jawaban)</h4>
+                    <p>Dalam penerapan data logging industri untuk pemeliharaan prediktif (predictive maintenance), mengapa pencatatan Timestamp dan penggunaan format data terstruktur seperti CSV sangat krusial?</p>
+                    <label><input type="checkbox" name="q17" value="A" onchange="updatePaletteState()"> Timestamp memberikan konteks temporal (waktu kejadian) yang jelas untuk menganalisis tren perubahan parameter mesin dari waktu ke waktu.</label>
+                    <label><input type="checkbox" name="q17" value="B" onchange="updatePaletteState()"> Format CSV menggantikan fungsi kabel komunikasi SPI sehingga sensor dapat mengirim data tanpa kabel.</label>
+                    <label><input type="checkbox" name="q17" value="C" onchange="updatePaletteState()"> Timestamp dapat memperluas kapasitas fisik SD card hingga dua kali lipat.</label>
+                    <label><input type="checkbox" name="q17" value="D" onchange="updatePaletteState()"> Format CSV mempermudah pemrosesan, ekspor, dan analisis data riwayat lebih lanjut menggunakan perangkat lunak pengolah data.</label>
+                    <label><input type="checkbox" name="q17" value="E" onchange="updatePaletteState()"> Timestamp secara otomatis mencegah terjadinya kerusakan fisik pada sensor saat terjadi lonjakan suhu.</label>
+                </div>
+
+                <!-- SOAL 18 -->
+                <div class="question-block" id="q-block-18">
+                    <h4>Soal Nomor 18 (Pilih 2 Jawaban)</h4>
+                    <p>Ketika menguji kode program pembacaan sensor DHT22 pada ESP32, Serial Monitor terus menerus menampilkan pesan "Gagal membaca sensor!". Kombinasi DUA penyebab teknis utama yang paling mungkin memicu kondisi tersebut adalah...</p>
+                    <label><input type="checkbox" name="q18" value="A" onchange="updatePaletteState()"> LED pada GPIO12 dipasang menggunakan resistor pembatas arus bernilai 220 Ohm.</label>
+                    <label><input type="checkbox" name="q18" value="B" onchange="updatePaletteState()"> Fungsi isnan(h) || isnan(t) mendeteksi nilai Not a Number akibat kabel data terputus atau sensor tidak menerima daya VCC/GND.</label>
+                    <label><input type="checkbox" name="q18" value="C" onchange="updatePaletteState()"> Pengembang mengatur baud rate Serial Monitor pada angka 115200 sesuai dengan fungsi Serial.begin(115200).</label>
+                    <label><input type="checkbox" name="q18" value="D" onchange="updatePaletteState()"> Nilai suhu yang terukur oleh sensor berada di luar rentang 30⁰ C hingga 30⁰ C.</label>
+                    <label><input type="checkbox" name="q18" value="E" onchange="updatePaletteState()"> Pin data (OUT) sensor DHT22 tidak terhubung ke GPIO14 sebagaimana yang didefinisikan pada #define DHTPIN 14.</label>
+                </div>
+
+                <!-- SOAL 19 -->
+                <div class="question-block" id="q-block-19">
+                    <h4>Soal Nomor 19 (Pilih 2 Jawaban)</h4>
+                    <p>Sebuah pabrik ingin memperbarui sistem pemantauan suhu oven produksi. Manakah DUA keunggulan utama dari metode Logging ke Cloud Platform jika dibandingkan dengan metode Logging ke SD Card secara lokal?</p>
+                    <label><input type="checkbox" name="q19" value="A" onchange="updatePaletteState()"> Menghilangkan keterbatasan siklus tulis/hapus (write cycle) pada sensor analog.</label>
+                    <label><input type="checkbox" name="q19" value="B" onchange="updatePaletteState()"> Menyediakan fitur visualisasi data langsung dalam bentuk grafik interaktif atau dashboard.</label>
+                    <label><input type="checkbox" name="q19" value="C" onchange="updatePaletteState()"> Tidak memerlukan koneksi internet atau Wi-Fi sama sekali dalam proses pengiriman datanya.</label>
+                    <label><input type="checkbox" name="q19" value="D" onchange="updatePaletteState()"> Data dapat dipantau secara real-time dari mana saja serta mendukung notifikasi peringatan dini jika terjadi anomali.</label>
+                    <label><input type="checkbox" name="q19" value="E" onchange="updatePaletteState()"> Terbebas dari isu keamanan data serta tidak memerlukan konfigurasi enkripsi atau otentikasi.</label>
+                </div>
+
+                <!-- SOAL 20 -->
+                <div class="question-block" id="q-block-20">
+                    <h4>Soal Nomor 20 (Pilih 2 Jawaban)</h4>
+                    <p>Seorang siswa merangkai ESP32 dengan sensor DHT22 dan mengunggah kode program monitoring suhu ke aplikasi Blynk. Saat diuji, Serial Monitor menampilkan pembacaan suhu normal (29.5°C), tetapi indikator Gauge pada aplikasi Blynk di smartphone siswa tersebut tetap menunjukkan angka 0 dan tidak memperbarui data. Analisis manakah yang memuat DUA penyebab teknis paling mungkin dari masalah tersebut?</p>
+                    <label><input type="checkbox" name="q20" value="A" onchange="updatePaletteState()"> Sensor DHT22 mengalami kerusakan total sehingga jalur VCC dan GND terputus.</label>
+                    <label><input type="checkbox" name="q20" value="B" onchange="updatePaletteState()"> Penetapan Virtual Pin pada program (Blynk.virtualWrite(V1, t)) tidak cocok dengan Virtual Pin yang dikonfigurasi pada widget Gauge di aplikasi Blynk.</label>
+                    <label><input type="checkbox" name="q20" value="C" onchange="updatePaletteState()"> Resistor pembatas arus 220 Ohm pada rangkaian LED terpasang terbalik.</label>
+                    <label><input type="checkbox" name="q20" value="D" onchange="updatePaletteState()"> Fungsi timer.run() atau Blynk.run() tidak dipanggil secara terus-menerus di dalam fungsi void loop().</label>
+                    <label><input type="checkbox" name="q20" value="E" onchange="updatePaletteState()"> Pin komunikasi I2C (SDA dan SCL) belum terhubung ke kaki data sensor DHT22.</label>
+                </div>
+
+                <!-- BAGIAN C: BENAR ATAU SALAH [21-30] -->
+
+                <!-- SOAL 21 -->
+                <div class="question-block" id="q-block-21">
+                    <h4>Soal Nomor 21 (Benar / Salah)</h4>
+                    <p>Metode kedip(int delayWaktu) di dalam file LED.cpp menerapkan prinsip reusability (penggunaan kembali kode) internal dengan memanggil metode nyalakan() dan matikan() yang sudah ada pada kelas yang sama.</p>
+                    <label><input type="radio" name="q21" value="Benar" onchange="updatePaletteState()"> Benar</label>
+                    <label><input type="radio" name="q21" value="Salah" onchange="updatePaletteState()"> Salah</label>
+                </div>
+
+                <!-- SOAL 22 -->
+                <div class="question-block" id="q-block-22">
+                    <h4>Soal Nomor 22 (Benar / Salah)</h4>
+                    <p>Berdasarkan diagram dan petunjuk skematik pada modul, rangkaian LED dirangkai menggunakan konfigurasi Active-Low, di mana Katoda dihubungkan ke Pin Digital Arduino dan Anoda dihubungkan ke Ground melalui Resistor.</p>
+                    <label><input type="radio" name="q22" value="Benar" onchange="updatePaletteState()"> Benar</label>
+                    <label><input type="radio" name="q22" value="Salah" onchange="updatePaletteState()"> Salah</label>
+                </div>
+
+                <!-- SOAL 23 -->
+                <div class="question-block" id="q-block-23">
+                    <h4>Soal Nomor 23 (Benar / Salah)</h4>
+                    <p>Fungsi Constructor LED::LED(int pin) dieksekusi secara otomatis saat objek baru dibuat (diinstansiasi), dan berfungsi menginisialisasi nomor pin sekaligus mengatur mode pin menjadi OUTPUT.</p>
+                    <label><input type="radio" name="q23" value="Benar" onchange="updatePaletteState()"> Benar</label>
+                    <label><input type="radio" name="q23" value="Salah" onchange="updatePaletteState()"> Salah</label>
+                </div>
+
+                <!-- SOAL 24 -->
+                <div class="question-block" id="q-block-24">
+                    <h4>Soal Nomor 24 (Benar / Salah)</h4>
+                    <p>Pada papan Arduino Uno, fungsi komunikasi I2C secara perangkat keras dialokasikan pada pin Analog A4 untuk garis SDA (Serial Data) dan pin Analog A5 untuk garis SCL (Serial Clock).</p>
+                    <label><input type="radio" name="q24" value="Benar" onchange="updatePaletteState()"> Benar</label>
+                    <label><input type="radio" name="q24" value="Salah" onchange="updatePaletteState()"> Salah</label>
+                </div>
+
+                <!-- SOAL 25 -->
+                <div class="question-block" id="q-block-25">
+                    <h4>Soal Nomor 25 (Benar / Salah)</h4>
+                    <p>Universal Asynchronous Receiver-Transmitter (UART) merupakan protokol komunikasi serial sinkron yang memanfaatkan pin SCK untuk menyelaraskan pengiriman data antara pemancar dan penerima.</p>
+                    <label><input type="radio" name="q25" value="Benar" onchange="updatePaletteState()"> Benar</label>
+                    <label><input type="radio" name="q25" value="Salah" onchange="updatePaletteState()"> Salah</label>
+                </div>
+
+                <!-- SOAL 26 -->
+                <div class="question-block" id="q-block-26">
+                    <h4>Soal Nomor 26 (Benar / Salah)</h4>
+                    <p>Saat membaca input analog potensiometer menggunakan ESP32, nilai maksimum yang dihasilkan oleh fungsi analogRead() ketika tegangan input mencapai maksimum (3.3V/5V) adalah 1023.</p>
+                    <label><input type="radio" name="q26" value="Benar" onchange="updatePaletteState()"> Benar</label>
+                    <label><input type="radio" name="q26" value="Salah" onchange="updatePaletteState()"> Salah</label>
+                </div>
+
+                <!-- SOAL 27 -->
+                <div class="question-block" id="q-block-27">
+                    <h4>Soal Nomor 27 (Benar / Salah)</h4>
+                    <p>Penggunaan Virtual Pin pada aplikasi Blynk bertindak sebagai jembatan komunikasi yang memungkinkan pengiriman data sensor dari ESP32 ke dashboard antarmuka tanpa harus terikat langsung pada nomor pin fisik (hardware GPIO) mikrokontroler.</p>
+                    <label><input type="radio" name="q27" value="Benar" onchange="updatePaletteState()"> Benar</label>
+                    <label><input type="radio" name="q27" value="Salah" onchange="updatePaletteState()"> Salah</label>
+                </div>
+
+                <!-- SOAL 28 -->
+                <div class="question-block" id="q-block-28">
+                    <h4>Soal Nomor 28 (Benar / Salah)</h4>
+                    <p>Jika pemanggilan data pada program diganti menggunakan perintah penundaan delay(5000) di dalam void loop() (bukan menggunakan BlynkTimer), sistem IoT Blynk akan tetap beroperasi responsif dan bebas dari risiko terputusnya koneksi server (timeout/disconnect).</p>
+                    <label><input type="radio" name="q28" value="Benar" onchange="updatePaletteState()"> Benar</label>
+                    <label><input type="radio" name="q28" value="Salah" onchange="updatePaletteState()"> Salah</label>
+                </div>
+
+                <!-- SOAL 29 -->
+                <div class="question-block" id="q-block-29">
+                    <h4>Soal Nomor 29 (Benar / Salah)</h4>
+                    <p>Parameter BLYNK_AUTH_TOKEN merupakan kode unik yang berfungsi sebagai kunci otentikasi keamanan untuk memastikan data dari ESP32 terhubung tepat ke proyek dashboard Blynk yang dituju.</p>
+                    <label><input type="radio" name="q29" value="Benar" onchange="updatePaletteState()"> Benar</label>
+                    <label><input type="radio" name="q29" value="Salah" onchange="updatePaletteState()"> Salah</label>
+                </div>
+
+                <!-- SOAL 30 -->
+                <div class="question-block" id="q-block-30">
+                    <h4>Soal Nomor 30 (Benar / Salah)</h4>
+                    <p>Protokol komunikasi I2C yang digunakan untuk mengoperasikan layar LCD membutuhkan sedikitnya 4 kabel jalur data digital utama (D1, D2, D3, D4) untuk mentransfer data bit demi bit dari ESP32.</p>
+                    <label><input type="radio" name="q30" value="Benar" onchange="updatePaletteState()"> Benar</label>
+                    <label><input type="radio" name="q30" value="Salah" onchange="updatePaletteState()"> Salah</label>
+                </div>
+
+                <!-- BAGIAN D: MENJODOHKAN [31-40] -->
+
+                <!-- SOAL 31 -->
+                <div class="question-block" id="q-block-31">
+                    <h4>Soal Nomor 31 (Menjodohkan)</h4>
+                    <p>Metode data logging tanpa komponen eksternal tambahan yang menyimpan data pada memori non-volatile bawaan mikrokontroler, namun kapasitasnya sangat terbatas.</p>
+                    <select name="q31" onchange="updatePaletteState()">
+                        <option value="">-- Pilih Jawaban --</option>
+                        <option value="Logging ke Memori Internal (EEPROM/Flash)">Logging ke Memori Internal (EEPROM/Flash)</option>
+                        <option value="Predictive Maintenance (Pemeliharaan Prediktif)">Predictive Maintenance (Pemeliharaan Prediktif)</option>
+                        <option value="Timestamp">Timestamp</option>
+                        <option value="Logging ke SD Card">Logging ke SD Card</option>
+                        <option value="isnan()">isnan()</option>
+                        <option value="Virtual Pin">Virtual Pin</option>
+                        <option value="timer.setInterval()">timer.setInterval()</option>
+                        <option value="BLYNK_AUTH_TOKEN">BLYNK_AUTH_TOKEN</option>
+                        <option value="Protokol I2C">Protokol I2C</option>
+                        <option value="SuperChart / Chart">SuperChart / Chart</option>
+                        <option value="Logging ke Serial Monitor">Logging ke Serial Monitor</option>
+                        <option value="Blynk.begin()">Blynk.begin()</option>
+                        <option value="Manajemen Energi">Manajemen Energi</option>
+                    </select>
+                </div>
+
+                <!-- SOAL 32 -->
+                <div class="question-block" id="q-block-32">
+                    <h4>Soal Nomor 32 (Menjodohkan)</h4>
+                    <p>Aplikasi data logging industri yang merekam getaran dan suhu motor secara berkala untuk memprediksi kegagalan mesin sebelum terjadi kerusakan parah.</p>
+                    <select name="q32" onchange="updatePaletteState()">
+                        <option value="">-- Pilih Jawaban --</option>
+                        <option value="Logging ke Memori Internal (EEPROM/Flash)">Logging ke Memori Internal (EEPROM/Flash)</option>
+                        <option value="Predictive Maintenance (Pemeliharaan Prediktif)">Predictive Maintenance (Pemeliharaan Prediktif)</option>
+                        <option value="Timestamp">Timestamp</option>
+                        <option value="Logging ke SD Card">Logging ke SD Card</option>
+                        <option value="isnan()">isnan()</option>
+                        <option value="Virtual Pin">Virtual Pin</option>
+                        <option value="timer.setInterval()">timer.setInterval()</option>
+                        <option value="BLYNK_AUTH_TOKEN">BLYNK_AUTH_TOKEN</option>
+                        <option value="Protokol I2C">Protokol I2C</option>
+                        <option value="SuperChart / Chart">SuperChart / Chart</option>
+                        <option value="Logging ke Serial Monitor">Logging ke Serial Monitor</option>
+                        <option value="Blynk.begin()">Blynk.begin()</option>
+                        <option value="Manajemen Energi">Manajemen Energi</option>
+                    </select>
+                </div>
+
+                <!-- SOAL 33 -->
+                <div class="question-block" id="q-block-33">
+                    <h4>Soal Nomor 33 (Menjodohkan)</h4>
+                    <p>Komponen penting data logging berupa informasi tanggal dan jam pada setiap rekaman data agar memiliki konteks temporal yang jelas.</p>
+                    <select name="q33" onchange="updatePaletteState()">
+                         <option value="">-- Pilih Jawaban --</option>
+                        <option value="Logging ke Memori Internal (EEPROM/Flash)">Logging ke Memori Internal (EEPROM/Flash)</option>
+                        <option value="Predictive Maintenance (Pemeliharaan Prediktif)">Predictive Maintenance (Pemeliharaan Prediktif)</option>
+                        <option value="Timestamp">Timestamp</option>
+                        <option value="Logging ke SD Card">Logging ke SD Card</option>
+                        <option value="isnan()">isnan()</option>
+                        <option value="Virtual Pin">Virtual Pin</option>
+                        <option value="timer.setInterval()">timer.setInterval()</option>
+                        <option value="BLYNK_AUTH_TOKEN">BLYNK_AUTH_TOKEN</option>
+                        <option value="Protokol I2C">Protokol I2C</option>
+                        <option value="SuperChart / Chart">SuperChart / Chart</option>
+                        <option value="Logging ke Serial Monitor">Logging ke Serial Monitor</option>
+                        <option value="Blynk.begin()">Blynk.begin()</option>
+                        <option value="Manajemen Energi">Manajemen Energi</option>
+                    </select>
+                </div>
+
+                <!-- SOAL 34 -->
+                <div class="question-block" id="q-block-34">
+                    <h4>Soal Nomor 34 (Menjodohkan)</h4>
+                    <p>Metode data logging berbasis lokal yang menyimpan data permanen dalam file teks atau .csv, sangat cocok untuk aplikasi offline.</p>
+                    <select name="q34" onchange="updatePaletteState()">
+                         <option value="">-- Pilih Jawaban --</option>
+                        <option value="Logging ke Memori Internal (EEPROM/Flash)">Logging ke Memori Internal (EEPROM/Flash)</option>
+                        <option value="Predictive Maintenance (Pemeliharaan Prediktif)">Predictive Maintenance (Pemeliharaan Prediktif)</option>
+                        <option value="Timestamp">Timestamp</option>
+                        <option value="Logging ke SD Card">Logging ke SD Card</option>
+                        <option value="isnan()">isnan()</option>
+                        <option value="Virtual Pin">Virtual Pin</option>
+                        <option value="timer.setInterval()">timer.setInterval()</option>
+                        <option value="BLYNK_AUTH_TOKEN">BLYNK_AUTH_TOKEN</option>
+                        <option value="Protokol I2C">Protokol I2C</option>
+                        <option value="SuperChart / Chart">SuperChart / Chart</option>
+                        <option value="Logging ke Serial Monitor">Logging ke Serial Monitor</option>
+                        <option value="Blynk.begin()">Blynk.begin()</option>
+                        <option value="Manajemen Energi">Manajemen Energi</option>
+                    </select>
+                </div>
+
+                <!-- SOAL 35 -->
+                <div class="question-block" id="q-block-35">
+                    <h4>Soal Nomor 35 (Menjodohkan)</h4>
+                    <p>Perintah/fungsi C++ yang digunakan pada program untuk menguji apakah hasil pembacaan kelembaban atau suhu dari sensor DHT22 bernilai tidak valid.</p>
+                    <select name="q35" onchange="updatePaletteState()">
+                         <option value="">-- Pilih Jawaban --</option>
+                        <option value="Logging ke Memori Internal (EEPROM/Flash)">Logging ke Memori Internal (EEPROM/Flash)</option>
+                        <option value="Predictive Maintenance (Pemeliharaan Prediktif)">Predictive Maintenance (Pemeliharaan Prediktif)</option>
+                        <option value="Timestamp">Timestamp</option>
+                        <option value="Logging ke SD Card">Logging ke SD Card</option>
+                        <option value="isnan()">isnan()</option>
+                        <option value="Virtual Pin">Virtual Pin</option>
+                        <option value="timer.setInterval()">timer.setInterval()</option>
+                        <option value="BLYNK_AUTH_TOKEN">BLYNK_AUTH_TOKEN</option>
+                        <option value="Protokol I2C">Protokol I2C</option>
+                        <option value="SuperChart / Chart">SuperChart / Chart</option>
+                        <option value="Logging ke Serial Monitor">Logging ke Serial Monitor</option>
+                        <option value="Blynk.begin()">Blynk.begin()</option>
+                        <option value="Manajemen Energi">Manajemen Energi</option>
+                    </select>
+                </div>
+
+                <!-- SOAL 36 -->
+                <div class="question-block" id="q-block-36">
+                    <h4>Soal Nomor 36 (Menjodohkan)</h4>
+                    <p>Fitur antarmuka Blynk yang berfungsi menghubungkan variabel program ESP32 dengan widget aplikasi tanpa membatasi penggunaan pin fisik mikrokontroler.</p>
+                    <select name="q36" onchange="updatePaletteState()">
+                         <option value="">-- Pilih Jawaban --</option>
+                        <option value="Logging ke Memori Internal (EEPROM/Flash)">Logging ke Memori Internal (EEPROM/Flash)</option>
+                        <option value="Predictive Maintenance (Pemeliharaan Prediktif)">Predictive Maintenance (Pemeliharaan Prediktif)</option>
+                        <option value="Timestamp">Timestamp</option>
+                        <option value="Logging ke SD Card">Logging ke SD Card</option>
+                        <option value="isnan()">isnan()</option>
+                        <option value="Virtual Pin">Virtual Pin</option>
+                        <option value="timer.setInterval()">timer.setInterval()</option>
+                        <option value="BLYNK_AUTH_TOKEN">BLYNK_AUTH_TOKEN</option>
+                        <option value="Protokol I2C">Protokol I2C</option>
+                        <option value="SuperChart / Chart">SuperChart / Chart</option>
+                        <option value="Logging ke Serial Monitor">Logging ke Serial Monitor</option>
+                        <option value="Blynk.begin()">Blynk.begin()</option>
+                        <option value="Manajemen Energi">Manajemen Energi</option>
+                    </select>
+                </div>
+
+                <!-- SOAL 37 -->
+                <div class="question-block" id="q-block-37">
+                    <h4>Soal Nomor 37 (Menjodohkan)</h4>
+                    <p>Perintah kode dalam library Blynk yang digunakan untuk mengatur interval eksekusi rutin pengiriman data sensor secara berkala (non-blocking).</p>
+                    <select name="q37" onchange="updatePaletteState()">
+                         <option value="">-- Pilih Jawaban --</option>
+                        <option value="Logging ke Memori Internal (EEPROM/Flash)">Logging ke Memori Internal (EEPROM/Flash)</option>
+                        <option value="Predictive Maintenance (Pemeliharaan Prediktif)">Predictive Maintenance (Pemeliharaan Prediktif)</option>
+                        <option value="Timestamp">Timestamp</option>
+                        <option value="Logging ke SD Card">Logging ke SD Card</option>
+                        <option value="isnan()">isnan()</option>
+                        <option value="Virtual Pin">Virtual Pin</option>
+                        <option value="timer.setInterval()">timer.setInterval()</option>
+                        <option value="BLYNK_AUTH_TOKEN">BLYNK_AUTH_TOKEN</option>
+                        <option value="Protokol I2C">Protokol I2C</option>
+                        <option value="SuperChart / Chart">SuperChart / Chart</option>
+                        <option value="Logging ke Serial Monitor">Logging ke Serial Monitor</option>
+                        <option value="Blynk.begin()">Blynk.begin()</option>
+                        <option value="Manajemen Energi">Manajemen Energi</option>
+                    </select>
+                </div>
+
+                <!-- SOAL 38 -->
+                <div class="question-block" id="q-block-38">
+                    <h4>Soal Nomor 38 (Menjodohkan)</h4>
+                    <p>Kode identifikasi unik yang dikirim via email untuk memverifikasi dan menghubungkan perangkat keras ESP32 dengan proyek Blynk tertentu.</p>
+                    <select name="q38" onchange="updatePaletteState()">
+                         <option value="">-- Pilih Jawaban --</option>
+                        <option value="Logging ke Memori Internal (EEPROM/Flash)">Logging ke Memori Internal (EEPROM/Flash)</option>
+                        <option value="Predictive Maintenance (Pemeliharaan Prediktif)">Predictive Maintenance (Pemeliharaan Prediktif)</option>
+                        <option value="Timestamp">Timestamp</option>
+                        <option value="Logging ke SD Card">Logging ke SD Card</option>
+                        <option value="isnan()">isnan()</option>
+                        <option value="Virtual Pin">Virtual Pin</option>
+                        <option value="timer.setInterval()">timer.setInterval()</option>
+                        <option value="BLYNK_AUTH_TOKEN">BLYNK_AUTH_TOKEN</option>
+                        <option value="Protokol I2C">Protokol I2C</option>
+                        <option value="SuperChart / Chart">SuperChart / Chart</option>
+                        <option value="Logging ke Serial Monitor">Logging ke Serial Monitor</option>
+                        <option value="Blynk.begin()">Blynk.begin()</option>
+                        <option value="Manajemen Energi">Manajemen Energi</option>
+                    </select>
+                </div>
+
+                <!-- SOAL 39 -->
+                <div class="question-block" id="q-block-39">
+                    <h4>Soal Nomor 39 (Menjodohkan)</h4>
+                    <p>Jalur komunikasi dua kawat (SDA dan SCL) yang digunakan untuk menghubungkan mikrokontroler dengan display LCD I2C secara efisien.</p>
+                    <select name="q39" onchange="updatePaletteState()">
+                         <option value="">-- Pilih Jawaban --</option>
+                        <option value="Logging ke Memori Internal (EEPROM/Flash)">Logging ke Memori Internal (EEPROM/Flash)</option>
+                        <option value="Predictive Maintenance (Pemeliharaan Prediktif)">Predictive Maintenance (Pemeliharaan Prediktif)</option>
+                        <option value="Timestamp">Timestamp</option>
+                        <option value="Logging ke SD Card">Logging ke SD Card</option>
+                        <option value="isnan()">isnan()</option>
+                        <option value="Virtual Pin">Virtual Pin</option>
+                        <option value="timer.setInterval()">timer.setInterval()</option>
+                        <option value="BLYNK_AUTH_TOKEN">BLYNK_AUTH_TOKEN</option>
+                        <option value="Protokol I2C">Protokol I2C</option>
+                        <option value="SuperChart / Chart">SuperChart / Chart</option>
+                        <option value="Logging ke Serial Monitor">Logging ke Serial Monitor</option>
+                        <option value="Blynk.begin()">Blynk.begin()</option>
+                        <option value="Manajemen Energi">Manajemen Energi</option>
+                    </select>
+                </div>
+
+                <!-- SOAL 40 -->
+                <div class="question-block" id="q-block-40">
+                    <h4>Soal Nomor 40 (Menjodohkan)</h4>
+                    <p>Widget pada aplikasi Blynk yang berfungsi menampilkan riwayat dan tren perubahan data sensor dalam bentuk grafik interaktif secara real-time.</p>
+                    <select name="q40" onchange="updatePaletteState()">
+                         <option value="">-- Pilih Jawaban --</option>
+                        <option value="Logging ke Memori Internal (EEPROM/Flash)">Logging ke Memori Internal (EEPROM/Flash)</option>
+                        <option value="Predictive Maintenance (Pemeliharaan Prediktif)">Predictive Maintenance (Pemeliharaan Prediktif)</option>
+                        <option value="Timestamp">Timestamp</option>
+                        <option value="Logging ke SD Card">Logging ke SD Card</option>
+                        <option value="isnan()">isnan()</option>
+                        <option value="Virtual Pin">Virtual Pin</option>
+                        <option value="timer.setInterval()">timer.setInterval()</option>
+                        <option value="BLYNK_AUTH_TOKEN">BLYNK_AUTH_TOKEN</option>
+                        <option value="Protokol I2C">Protokol I2C</option>
+                        <option value="SuperChart / Chart">SuperChart / Chart</option>
+                        <option value="Logging ke Serial Monitor">Logging ke Serial Monitor</option>
+                        <option value="Blynk.begin()">Blynk.begin()</option>
+                        <option value="Manajemen Energi">Manajemen Energi</option>
+                    </select>
+                </div>
+
+                <!-- TOMBOL NAVIGASI -->
+                <div class="navigation-buttons">
+                    <button type="button" class="btn-nav" id="prevBtn" onclick="changeQuestion(-1)">Sebelumnya</button>
+                    <button type="button" class="btn-nav" id="nextBtn" onclick="changeQuestion(1)">Selanjutnya</button>
+                    <button type="submit" id="submitBtn" style="display: none;">Kirim Jawaban Ujian</button>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const SHEETDB_API = "https://sheetdb.io/api/v1/jdtwis00yh872";
+    const EXAM_PASSWORD = "elektronika12";
+
+    let examActive = false;
+    let currentStudent = "";
+    let currentAbsen = "";
+    let currentClass = "";
+    
+    let currentQuestion = 1;
+    const totalQuestions = 40;
+
+    let timeLeft = 3600; 
+    let examTimer = null;
+
+    const answerKey = {
+        q1: 'A', q2: 'B', q3: 'C', q4: 'B', q5: 'A',
+        q6: 'A', q7: 'A', q8: 'A', q9: 'A', q10: 'C',
+        q11: ['B', 'E'],
+        q12: ['A', 'D'],
+        q13: ['C', 'D'],
+        q14: ['A', 'E'],
+        q15: ['B', 'C'],
+        q16: ['B', 'E'],
+        q17: ['A', 'D'],
+        q18: ['B', 'E'],
+        q19: ['B', 'D'],
+        q20: ['B', 'D'],
+        q21: 'Benar', q22: 'Salah', q23: 'Benar', q24: 'Benar', q25: 'Salah',
+        q26: 'Salah', q27: 'Benar', q28: 'Salah', q29: 'Benar', q30: 'Salah',
+        q31: 'Logging ke Memori Internal (EEPROM/Flash)',
+        q32: 'Predictive Maintenance (Pemeliharaan Prediktif)',
+        q33: 'Timestamp',
+        q34: 'Logging ke SD Card',
+        q35: 'isnan()',
+        q36: 'Virtual Pin',
+        q37: 'timer.setInterval()',
+        q38: 'BLYNK_AUTH_TOKEN',
+        q39: 'Protokol I2C',
+        q40: 'SuperChart / Chart'
+    };
+
+    function generatePalette() {
+        const paletteGrid = document.getElementById('paletteGrid');
+        paletteGrid.innerHTML = "";
+        for (let i = 1; i <= totalQuestions; i++) {
+            const btn = document.createElement('button');
+            btn.type = "button";
+            btn.id = `palette-btn-${i}`;
+            btn.className = "palette-btn palette-unanswered";
+            btn.innerText = i;
+            btn.onclick = () => goToQuestion(i);
+            paletteGrid.appendChild(btn);
+        }
+        updatePaletteState();
+    }
+
+    function startExam() {
+        const name = document.getElementById('studentName').value.trim();
+        const absen = document.getElementById('studentAbsen').value.trim();
+        const className = document.getElementById('studentClass').value.trim();
+        const password = document.getElementById('studentPassword').value.trim();
+
+        if (!name || !absen || !className || !password) {
+            alert("Harap isi Nama, Nomor Absen, Kelas, dan Password Ujian terlebih dahulu!");
+            return;
+        }
+
+        if (password !== EXAM_PASSWORD) {
+            alert("Password ujian salah! Hubungi pengawas/guru untuk mendapatkan password yang benar.");
+            return;
+        }
+
+        currentStudent = name;
+        currentAbsen = absen;
+        currentClass = className;
+        document.getElementById('displayStudent').innerText = `${name} (Absen: ${absen}, Kelas: ${className})`;
+
+        document.getElementById('start-screen').style.display = 'none';
+        document.getElementById('exam-container').style.display = 'block';
+        
+        generatePalette();
+        showQuestion(1);
+        examActive = true;
+
+        startCountdown();
+
+        if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch(() => {});
+        }
+    }
+
+    function showQuestion(num) {
+        for (let i = 1; i <= totalQuestions; i++) {
+            document.getElementById(`q-block-${i}`).classList.remove('active');
+        }
+        document.getElementById(`q-block-${num}`).classList.add('active');
+        currentQuestion = num;
+
+        document.getElementById('prevBtn').style.display = (num === 1) ? 'none' : 'inline-block';
+        document.getElementById('nextBtn').style.display = (num === totalQuestions) ? 'none' : 'inline-block';
+        document.getElementById('submitBtn').style.display = (num === totalQuestions) ? 'inline-block' : 'none';
+    }
+
+    function changeQuestion(direction) {
+        let newQ = currentQuestion + direction;
+        if (newQ >= 1 && newQ <= totalQuestions) {
+            showQuestion(newQ);
+        }
+    }
+
+    function goToQuestion(num) { showQuestion(num); }
+
+    function updatePaletteState() {
+        const formData = new FormData(document.getElementById('quizForm'));
+        let answeredCount = 0;
+        let unansweredCount = 0;
+        
+        for (let i = 1; i <= totalQuestions; i++) {
+            let qKey = 'q' + i;
+            let isAnswered = false;
+
+            let isComplex = (i >= 11 && i <= 20);
+
+            if (!isComplex) {
+                let val = formData.get(qKey);
+                if (val && val.trim() !== "") isAnswered = true;
+            } else {
+                let userVals = formData.getAll(qKey);
+                if (userVals && userVals.length > 0) isAnswered = true;
+            }
+
+            const paletteBtn = document.getElementById(`palette-btn-${i}`);
+            if (paletteBtn) {
+                if (isAnswered) {
+                    paletteBtn.className = "palette-btn palette-answered";
+                    answeredCount++;
+                } else {
+                    paletteBtn.className = "palette-btn palette-unanswered";
+                    unansweredCount++;
+                }
+            }
+        }
+
+        document.getElementById('countAnswered').innerText = answeredCount;
+        document.getElementById('countUnanswered').innerText = unansweredCount;
+    }
+
+    function startCountdown() {
+        clearInterval(examTimer);
+        examTimer = setInterval(() => {
+            if (!examActive) {
+                clearInterval(examTimer);
+                return;
+            }
+            let minutes = Math.floor(timeLeft / 60);
+            let seconds = timeLeft % 60;
+            let formattedTime = (minutes < 10 ? "0" : "") + minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+            document.getElementById('timerDisplay').innerText = formattedTime;
+
+            if (timeLeft <= 0) {
+                clearInterval(examTimer);
+                alert("Waktu ujian Anda telah habis! Jawaban akan dikirim otomatis.");
+                autoSubmitExam();
+            }
+            timeLeft--;
+        }, 1000);
+    }
+
+    document.addEventListener("visibilitychange", function() {
+        if (examActive && document.hidden) { recordCheat("Kecurangan (Keluar Tab)"); }
+    });
+
+    window.addEventListener("blur", function() {
+        if (examActive) { recordCheat("Kecurangan (Minimize / Pindah Aplikasi)"); }
+    });
+
+    function recordCheat(statusText) {
+        if (!examActive) return;
+        examActive = false;
+        clearInterval(examTimer);
+
+        sendDataToSheet(0, statusText);
+
+        document.getElementById('exam-container').style.display = 'none';
+        document.getElementById('blocked-screen').style.display = 'block';
+    }
+
+    function autoSubmitExam() {
+        if (!examActive) return;
+        examActive = false;
+        clearInterval(examTimer);
+
+        let score = calculateScore();
+        sendDataToSheet(score, "Waktu Habis (Auto Submit)");
+
+        document.getElementById('exam-container').style.display = 'none';
+        document.getElementById('finalScoreDisplay').innerText = score;
+        document.getElementById('result-screen').style.display = 'block';
+    }
+
+    function submitExam(e) {
+        e.preventDefault();
+        if (!examActive) return;
+
+        const formData = new FormData(document.getElementById('quizForm'));
+        let unansweredList = [];
+
+        for (let i = 1; i <= totalQuestions; i++) {
+            let qKey = 'q' + i;
+            let isAnswered = false;
+            let isComplex = (i >= 11 && i <= 20);
+
+            if (!isComplex) {
+                let val = formData.get(qKey);
+                if (val && val.trim() !== "") isAnswered = true;
+            } else {
+                let userVals = formData.getAll(qKey);
+                if (userVals && userVals.length > 0) isAnswered = true;
+            }
+
+            if (!isAnswered) unansweredList.push(i);
+        }
+
+        if (unansweredList.length > 0) {
+            alert(`PENGIRIMAN DITOLAK!\nMasih ada ${unansweredList.length} soal yang belum dikerjakan (Nomor: ${unansweredList.join(', ')}).\n\nHarap isi semua soal yang masih berwarna merah.`);
+            showQuestion(unansweredList[0]);
+            return;
+        }
+        
+        let confirmSubmit = confirm("Apakah Anda yakin ingin menyelesaikan ujian dan mengirimkan jawaban?");
+        if (!confirmSubmit) return;
+
+        examActive = false;
+        clearInterval(examTimer);
+
+        let score = calculateScore();
+        sendDataToSheet(score, "Selesai Normal");
+
+        document.getElementById('exam-container').style.display = 'none';
+        document.getElementById('finalScoreDisplay').innerText = score;
+        document.getElementById('result-screen').style.display = 'block';
+    }
+
+    function calculateScore() {
+        const formData = new FormData(document.getElementById('quizForm'));
+        let score = 0;
+        let pointsPerQuestion = 100 / totalQuestions;
+
+        for (let i = 1; i <= totalQuestions; i++) {
+            let qKey = 'q' + i;
+            let correctAns = answerKey[qKey];
+            let isComplex = (i >= 11 && i <= 20);
+
+            if (!isComplex) {
+                let val = formData.get(qKey);
+                if (val && val.trim().toLowerCase() === correctAns.toLowerCase()) {
+                    score += pointsPerQuestion;
+                }
+            } else {
+                let userVals = formData.getAll(qKey); 
+                let cleanUserVals = userVals.map(v => v.trim().toUpperCase()).sort();
+                let cleanCorrectAns = correctAns.map(v => v.trim().toUpperCase()).sort();
+
+                if (cleanUserVals.length === cleanCorrectAns.length && 
+                    cleanUserVals.every((val, index) => val === cleanCorrectAns[index])) {
+                    score += pointsPerQuestion;
+                }
+            }
+        }
+        score = Math.round(score);
+        return score > 100 ? 100 : score;
+    }
+
+    function sendDataToSheet(score, status) {
+        const dataObj = {
+            data: {
+                Waktu: new Date().toLocaleString(),
+                Nama: currentStudent || "Tidak Mengisi",
+                Absen: currentAbsen || "-",
+                Kelas: currentClass || "-",
+                Nilai: score,
+                Status: status
+            }
+        };
+
+        fetch(SHEETDB_API, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(dataObj)
+        })
+        .then(response => response.json())
+        .then(data => console.log("Berhasil disimpan ke Spreadsheet:", data))
+        .catch(error => console.error("Gagal mengirim data:", error));
+    }
+</script>
+
+</body>
+</html>
